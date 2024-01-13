@@ -1,6 +1,7 @@
 ESX = exports["es_extended"]:getSharedObject()
 local blip = nil
 local sacs = {}
+local deleteSac = {}
 
 RegisterNetEvent('eventsfourgon:spawnArgentProps')
 AddEventHandler('eventsfourgon:spawnArgentProps', function(vehicleProps, sacsCoords, montant)
@@ -33,10 +34,11 @@ AddEventHandler('eventsfourgon:spawnArgentProps', function(vehicleProps, sacsCoo
 
     for _, sac in ipairs(sacs) do
         local prop = CreateObject(GetHashKey(sac.model), sac.x, sac.y, sac.z, true, false, true)
+        table.insert(deleteSac, prop)
         -- SetEntityHeading(prop, heading)
         -- SetEntityHasGravity(prop, false)
-        -- SetEntityCollision(prop, false, false)
-        -- FreezeEntityPosition(prop, true)
+        SetEntityCollision(prop, false, false)
+        FreezeEntityPosition(prop, true)
     end
 
     if not DoesBlipExist(blip) then
@@ -49,12 +51,14 @@ end)
 RegisterNetEvent('eventsfourgon:supprimerSac')
 AddEventHandler('eventsfourgon:supprimerSac', function(sacIndex)
     local sac = sacs[sacIndex]
-
+    coords = GetEntityCoords(deleteSac[sacIndex])
     if sac then
-        print('Supprimer le sac avec l\'index côté client:', sacIndex)  -- Ajout d'un message de débogage
-        DeleteEntity(sac.object)
-        sac.object = nil
-        table.remove(sacs, sacIndex)
+        if coords.x == sacs[sacIndex].x then 
+            DeleteEntity(deleteSac[sacIndex])
+            table.remove(deleteSac, sacIndex)
+            sac.model = nil
+            table.remove(sacs, sacIndex)
+        end
     else
         print('Sac non trouvé avec l\'index côté client:', sacIndex)  -- Ajout d'un message de débogage
     end
@@ -114,7 +118,7 @@ Citizen.CreateThread(function()
                    -- print("Distance au sac " .. i .. ": " .. distance)  -- Ajout du message de débogage
 
                     if distance < 2.0 then
-                        print("Appuyez sur E pour ramasser l'argent")  -- Ajout du message de débogage
+                        -- print("Appuyez sur E pour ramasser l'argent")  -- Ajout du message de débogage
 
                         -- Ajoutez des messages de débogage pour afficher l'index côté client
                         TriggerEvent('eventsfourgon:debugIndex', 'Index côté client: ' .. i)
@@ -135,7 +139,7 @@ end)
 -- Gestionnaire d'événements pour afficher les messages de débogage
 RegisterNetEvent('eventsfourgon:debugIndex')
 AddEventHandler('eventsfourgon:debugIndex', function(message)
-    print(message)
+    -- print(message)
 end)
 
 
